@@ -1,5 +1,0 @@
-[wokwi]
-version =1
-gdbServerPort = 3333
-firmware = "build/flasher_args.json"
-elf="build/semeagol.elf"
