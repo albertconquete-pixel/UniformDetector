@@ -2,29 +2,35 @@
  * @file task.h
  * @author albertconquete-pixel/devmael
  * @brief interface du module de taches
- * @details contient les declarations des constantes, structures et fonctions pour 
- * la gestion des taches dans le systeme embrqué de detection d'uniforme
+ * @details contient les macros et fonctions pour 
+ * la gestion des taches dans le systeme embrqué 
+ * de detection d'uniforme
  */
 
 #ifndef INTERRUPTEUR_H_
 #define INTERRUPTEUR_H_
 
-#define GPIO_SENSOR_PIR GPIO_NUM_27
-#define GPIO_BUZZER  GPIO_NUM_26
+#define GPIO_SENSOR_PIR GPIO_NUM_3
+#define GPIO_BUZZER  GPIO_NUM_2
 #define GPIO_RED_LED GPIO_NUM_14
-#define GPIO_BLUE_LED GPIO_NUM_16
-#define GPIO_GREEN_LED GPIO_NUM_15
+#define GPIO_BLUE_LED GPIO_NUM_15
+#define GPIO_GREEN_LED GPIO_NUM_13
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 
 /**
- *@brief ce jetons sert d'authorisation pour que le micro conytrolleur
- * execute une tache
+ *@brief ce jetons sert d'authorisation pour que le micro controlleur
+ * execute la tache du capteur
  */
 extern SemaphoreHandle_t binaryTaskSensor;
 
+/**
+ *@brief ce jetons sert d'authorisation pour que le micro controlleur
+ * execute la tache de la prise de photos
+ */
+extern SemaphoreHandle_t binaryTaskPicture;
 
 /**
  * @brief fonction d'initialisation des broches des differents composants
@@ -80,5 +86,7 @@ extern void InterrupSensorPIR(void* arg);
  * @param arg pointeur vers l'id de la tache
  */
 extern void taskSensorPIR(void* arg);
+
+void taskPicture(void* arg);
 
 #endif
