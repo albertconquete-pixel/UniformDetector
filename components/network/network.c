@@ -61,8 +61,8 @@ EventBits_t initWifi(){
     ESP_ERROR_CHECK(esp_wifi_start());
     
     /**
-     * @warning fonction bloquante, a corriger pour eviter certains
+     * @warning fonction potentiellement bloquante, a corriger pour eviter certains
      * freeze du programme
      */
-    return xEventGroupWaitBits(wifiEventBits,WIFI_CONNECTED_BITS|WIFI_FAILS_CONNECTED_BITS,pdFALSE,pdFALSE,pdMS_TO_TICKS(700));
+    return xEventGroupWaitBits(wifiEventBits,WIFI_CONNECTED_BITS|WIFI_FAILS_CONNECTED_BITS,pdFALSE,pdFALSE,portMAX_DELAY);
 }
