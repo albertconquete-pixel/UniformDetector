@@ -1,20 +1,27 @@
 #include <stdio.h>
 #include "task.h"
+#include "network.h"
+#include "picture_cam.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "freertos/event_groups.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
-#include "network.h"
 #include "nvs_flash.h"
+#include "esp_camera.h"
+
 
 SemaphoreHandle_t binaryTaskSensor= NULL;
+SemaphoreHandle_t binaryTaskPicture = NULL;
 
 void InitComponents(){
+    /*init camera*/
+    initCamera();
+
     gpio_reset_pin(GPIO_BUZZER);
     gpio_reset_pin(GPIO_SENSOR_PIR);
-   
+    
     /*configuration of the PIR sensor*/
     gpio_config_t ioConfigSensorPIR= {
         .intr_type = GPIO_INTR_POSEDGE,
@@ -62,8 +69,10 @@ void taskInitAndStartWifi(){
      EventBits_t bits=initWifi();
     if(bits & WIFI_CONNECTED_BITS)
        ESP_LOGI("wifi_tag","connected to wifi");
-    if (bits & WIFI_FAILS_CONNECTED_BITS)
+    else if (bits & WIFI_FAILS_CONNECTED_BITS)
        ESP_LOGI("wifi_tag","connection failed");
+    else 
+       ESP_LOGI("wifi_tag", "bisarre");
 }
 
 void IRAM_ATTR InterrupSensorPIR(void* arg){
@@ -86,6 +95,37 @@ void taskSensorPIR(void* arg){
             /*eteindre le buzzer et la led verte*/
             gpio_set_level(GPIO_BUZZER,0);
             gpio_set_level(GPIO_GREEN_LED,0);
+            vTaskDelay(pdMS_TO_TICKS(200));
+            xSemaphoreGive(binaryTaskPicture);
         }
     }   
+}
+
+void taskPicture(void* arg){
+    while (1)
+    {
+        if(xSemaphoreTake(binaryTaskPicture,portMAX_DELAY))
+        printf("processus de prise de photos");
+        camera_fb_t* img= NULL;
+        img= takePicture();
+        if (!img)
+        {
+            gpio_set_level(GPIO_BUZZER,1);
+            gpio_set_level(GPIO_RED_LED,1);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            gpio_set_level(GPIO_BUZZER,0);
+            gpio_set_level(GPIO_RED_LED,0);
+        }
+        else
+        {
+            gpio_set_level(GPIO_BUZZER,1);
+            gpio_set_level(GPIO_GREEN_LED,1);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            gpio_set_level(GPIO_BUZZER,0);
+            gpio_set_level(GPIO_GREEN_LED,0);
+            freeBuffer(img); 
+        }  
+        
+    }
+     
 }
