@@ -1,12 +1,22 @@
+/**
+ * @file network.h
+ * @author albertconquete-pixel/devmael
+ * @brief interface du module de taches
+ * @details continent les differents macros et fonctions pour la 
+ * gestion des la connexion a un point d'accés, la gestion des sockets et l'envoie des 
+ * données.
+ */
+
+
 #ifndef NETWORK_H_
 #define NETWORK_H_
 
 #include "esp_event.h"
-#define ESP_WIFI_RETRY ESP_WIFI_MAX_CONN_NUM
-#define ESP_WIFI_SSDI "Wokwi-GUEST"
+#define ESP_WIFI_RETRY 2
+#define ESP_WIFI_SSDI "Wokfhthj"
 #define ESP_WIFI_PASSWORD ""
 
-#define WIFI_FAILS_CONNECTED_BITS 0x00
+#define WIFI_FAILS_CONNECTED_BITS 1 << 1
 #define WIFI_CONNECTED_BITS 1 << 0
 
 extern EventGroupHandle_t wifiEventBits;
