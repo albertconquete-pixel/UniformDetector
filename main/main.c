@@ -12,7 +12,7 @@
  * 
  * ce fichier appelle @ref task.h pour l'initiation , 
  * la configuration et le demarrage des taches de notre systemes
- * @version v0.1
+ * @version v0.1.1
  */
 
 #include <stdio.h>
@@ -26,24 +26,28 @@ void app_main(void)
    printf("commencons \n");
    InitComponents();
    binaryTaskSensor = xSemaphoreCreateBinary();
-   if (binaryTaskSensor)
+   binaryTaskPicture = xSemaphoreCreateBinary();
+   if (binaryTaskSensor || binaryTaskPicture) 
    {
-      /*creer l'interruption*/
+      /*creer l'interruption*/ 
       gpio_install_isr_service(0);
       gpio_isr_handler_add(GPIO_SENSOR_PIR,InterrupSensorPIR,(void*)GPIO_SENSOR_PIR);
 
       /*creer la tache*/
       xTaskCreatePinnedToCore(taskSensorPIR,"taskSensorPIR",3072,NULL,10,NULL,1);
+      xTaskCreatePinnedToCore(taskPicture,"taskPicture",3072,NULL,12,NULL,1);
       printf("tache creé \n");
 
       /*initialiser le wifi*/
       taskInitAndStartWifi();
-
-      vTaskDelay(pdMS_TO_TICKS(4000));
+      printf("fin de configuration \n");
+      /*demarage du programe*/
+      gpio_set_level(GPIO_BLUE_LED,1);
    }
 
    while(1){
-         vTaskDelay(portMAX_DELAY); 
+         vTaskDelay(pdMS_TO_TICKS(100)); 
+         printf("etas du capteur %d \n",gpio_get_level(GPIO_SENSOR_PIR));
    }
      
    
