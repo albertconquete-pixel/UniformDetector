@@ -89,4 +89,6 @@ extern void taskSensorPIR(void* arg);
 
 void taskPicture(void* arg);
 
+void sendImageHttp(void* arg);
+
 #endif
