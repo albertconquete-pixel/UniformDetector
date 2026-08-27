@@ -12,6 +12,8 @@
  */
 
 #include "esp_camera.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 #ifndef PICTURE_CAM_
 #define PICTURE_CAM_
@@ -35,12 +37,16 @@
 #define CAM_PIN_HREF    23
 #define CAM_PIN_PCLK    22
 
-#define CONFIG_XCLK_FREQ 20000000 
+#define CONFIG_XCLK_FREQ 10000000 
 #define CONFIG_OV2640_SUPPORT 1
 #define CONFIG_OV7725_SUPPORT 1
 #define CONFIG_OV3660_SUPPORT 1
 #define CONFIG_OV5640_SUPPORT 1
 
+/**
+ * Servant de tampon securisé des different donné, sans conflit de tache
+ */
+extern QueueHandle_t queueImageBuffer;
 
 /**
  * @brief initiation de la caméra 
@@ -57,6 +63,9 @@ extern esp_err_t initCamera();
  * @return retourne un buffer d'image: un tableau d'entier 8bits
  */
 extern camera_fb_t* takePicture();
+/**
+ * fonction permettant de liberer la framme d'image de la camera
+ */
 extern void (*freeBuffer)(camera_fb_t*);
 
 
