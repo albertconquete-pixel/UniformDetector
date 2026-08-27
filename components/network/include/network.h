@@ -13,11 +13,15 @@
 
 #include "esp_event.h"
 #define ESP_WIFI_RETRY 2
-#define ESP_WIFI_SSDI "Wokfhthj"
-#define ESP_WIFI_PASSWORD ""
+#define ESP_WIFI_SSDI "TECNO SPARK 40"
+#define ESP_WIFI_PASSWORD "yxrgfi3rk9nr3mt"
 
 #define WIFI_FAILS_CONNECTED_BITS 1 << 1
 #define WIFI_CONNECTED_BITS 1 << 0
+
+#define SERVEUR_IP "10.0.2.2"
+#define PORT 3333
+#define INVALID_SOCKET -1
 
 extern EventGroupHandle_t wifiEventBits;
 
@@ -39,5 +43,20 @@ extern EventGroupHandle_t wifiEventBits;
  * @warning retour de fonction blocquante
  */
 extern EventBits_t initWifi();
+
+/**
+ * @brief fonction s'occupant du transfer de l'image vers l'application
+ * @details cette fonction depend du protocol de communication HTTP.
+ * elle se deroule de la façon suivante :
+ * 
+ * -Initiation du client ,
+ * -configuration du type de post (header)
+ * -requete d'envoie de la donné
+ * -execution de la requete
+ * -verification du message du serveur
+ * -netoyage du client.
+ * @warning fonction a sécurisé avec https. 
+ */
+void httpsTransfer(uint8_t* fb, int len);
 
 #endif
