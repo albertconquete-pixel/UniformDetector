@@ -34,8 +34,9 @@ void app_main(void)
       gpio_isr_handler_add(GPIO_SENSOR_PIR,InterrupSensorPIR,(void*)GPIO_SENSOR_PIR);
 
       /*creer la tache*/
-      xTaskCreatePinnedToCore(taskSensorPIR,"taskSensorPIR",3072,NULL,10,NULL,1);
-      xTaskCreatePinnedToCore(taskPicture,"taskPicture",3072,NULL,12,NULL,1);
+      xTaskCreatePinnedToCore(taskSensorPIR,"taskSensorPIR",2048,NULL,16,NULL,0);
+      xTaskCreatePinnedToCore(taskPicture,"taskPicture",2048,NULL,16,NULL,1);
+      xTaskCreatePinnedToCore(sendImageHttp,"sendImageHttp",6144,NULL,10,NULL,0);
       printf("tache creé \n");
 
       /*initialiser le wifi*/
