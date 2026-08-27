@@ -14,6 +14,7 @@
 
 SemaphoreHandle_t binaryTaskSensor= NULL;
 SemaphoreHandle_t binaryTaskPicture = NULL;
+static bool iaWork=false;
 
 void InitComponents(){
     /*init camera*/
@@ -21,7 +22,7 @@ void InitComponents(){
 
     gpio_reset_pin(GPIO_BUZZER);
     gpio_reset_pin(GPIO_SENSOR_PIR);
-    
+    queueImageBuffer = xQueueCreate(2,sizeof( camera_fb_t*));
     /*configuration of the PIR sensor*/
     gpio_config_t ioConfigSensorPIR= {
         .intr_type = GPIO_INTR_POSEDGE,
@@ -76,6 +77,7 @@ void taskInitAndStartWifi(){
 }
 
 void IRAM_ATTR InterrupSensorPIR(void* arg){
+    iaWork=true;
     BaseType_t priorityTask = pdFALSE;
     xSemaphoreGiveFromISR(binaryTaskSensor,&priorityTask);
     portYIELD_FROM_ISR(priorityTask);
@@ -87,16 +89,16 @@ void taskSensorPIR(void* arg){
     while (1)
     {
         if (xSemaphoreTake(binaryTaskSensor,portMAX_DELAY)==pdTRUE){
+            /*clignotement de la led*/
             printf("ok \n");
-            /*alumer le buzzer et la led verte*/
-            gpio_set_level(GPIO_GREEN_LED,1);
-            gpio_set_level(GPIO_BUZZER,1);
-            vTaskDelay(pdMS_TO_TICKS(100));
-            /*eteindre le buzzer et la led verte*/
-            gpio_set_level(GPIO_BUZZER,0);
-            gpio_set_level(GPIO_GREEN_LED,0);
-            vTaskDelay(pdMS_TO_TICKS(200));
             xSemaphoreGive(binaryTaskPicture);
+            while (iaWork)
+            {
+                gpio_set_level(GPIO_BLUE_LED,0);
+                vTaskDelay(pdMS_TO_TICKS(100));
+                gpio_set_level(GPIO_BLUE_LED,1);
+                vTaskDelay(pdMS_TO_TICKS(100));
+            }
         }
     }   
 }
@@ -104,28 +106,47 @@ void taskSensorPIR(void* arg){
 void taskPicture(void* arg){
     while (1)
     {
-        if(xSemaphoreTake(binaryTaskPicture,portMAX_DELAY))
-        printf("processus de prise de photos");
-        camera_fb_t* img= NULL;
-        img= takePicture();
-        if (!img)
-        {
-            gpio_set_level(GPIO_BUZZER,1);
-            gpio_set_level(GPIO_RED_LED,1);
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            gpio_set_level(GPIO_BUZZER,0);
-            gpio_set_level(GPIO_RED_LED,0);
+        if(xSemaphoreTake(binaryTaskPicture,portMAX_DELAY)){
+            printf("processus de prise de photos");
+            camera_fb_t* img= NULL;
+            img= takePicture();
+            if (!img)
+            {
+                gpio_set_level(GPIO_BUZZER,1);
+                gpio_set_level(GPIO_RED_LED,1);
+                vTaskDelay(pdMS_TO_TICKS(1000));
+                gpio_set_level(GPIO_BUZZER,0);
+                gpio_set_level(GPIO_RED_LED,0);
+            }
+            else
+            {
+                gpio_set_level(GPIO_BUZZER,1);
+                gpio_set_level(GPIO_GREEN_LED,1);
+                vTaskDelay(pdMS_TO_TICKS(1000));
+                gpio_set_level(GPIO_BUZZER,0);
+                gpio_set_level(GPIO_GREEN_LED,0);
+            } 
+            iaWork= false;
+
         }
-        else
-        {
-            gpio_set_level(GPIO_BUZZER,1);
-            gpio_set_level(GPIO_GREEN_LED,1);
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            gpio_set_level(GPIO_BUZZER,0);
-            gpio_set_level(GPIO_GREEN_LED,0);
-            freeBuffer(img); 
-        }  
-        
+
     }
      
+}
+
+void sendImageHttp(void* arg){
+    camera_fb_t* imageBuffer = NULL;
+    while (1)
+    {
+        if(xQueueReceive(queueImageBuffer,&imageBuffer,portMAX_DELAY)){
+            if (imageBuffer)
+            {
+                httpsTransfer(imageBuffer->buf,imageBuffer->len);
+                freeBuffer(imageBuffer); 
+            }
+            vTaskDelay(pdMS_TO_TICKS(500));
+        }
+        
+    }
+
 }
