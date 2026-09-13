@@ -23,6 +23,7 @@
 
 void app_main(void)
 {
+   uploadImageSecu();
    printf("commencons \n");
    InitComponents();
    binaryTaskSensor = xSemaphoreCreateBinary();
@@ -35,7 +36,7 @@ void app_main(void)
 
       /*creer la tache*/
       xTaskCreatePinnedToCore(taskSensorPIR,"taskSensorPIR",2048,NULL,16,NULL,0);
-      xTaskCreatePinnedToCore(taskPicture,"taskPicture",2048,NULL,16,NULL,1);
+      xTaskCreatePinnedToCore(taskPicture,"taskPicture",8192,NULL,16,NULL,1);
       xTaskCreatePinnedToCore(sendImageHttp,"sendImageHttp",6144,NULL,10,NULL,0);
       printf("tache creé \n");
 
