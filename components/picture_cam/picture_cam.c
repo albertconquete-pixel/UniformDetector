@@ -6,6 +6,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
+
+
 QueueHandle_t queueImageBuffer =NULL;
 void (*freeBuffer)(camera_fb_t* )= esp_camera_fb_return;
 
@@ -43,12 +45,14 @@ esp_err_t initCamera(){
 }
 
 camera_fb_t* takePicture(){
-    camera_fb_t* picture= esp_camera_fb_get();
+    static camera_fb_t* picture= NULL;
+    ESP_LOGI("camera","nombre de frame occupé: %d",uxQueueMessagesWaiting(queueImageBuffer)) ;    
+    picture =esp_camera_fb_get();
     if (!picture){
         ESP_LOGE("camera","erreur de prise de la photos");
         return NULL;
     }
-    xQueueSend(queueImageBuffer,&picture,portMAX_DELAY) ;
+    
     ESP_LOGI("camera", "taille %d",picture->len);
     return picture;
 }
