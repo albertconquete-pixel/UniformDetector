@@ -10,15 +10,16 @@
 #ifndef INTERRUPTEUR_H_
 #define INTERRUPTEUR_H_
 
-#define GPIO_SENSOR_PIR GPIO_NUM_3
-#define GPIO_BUZZER  GPIO_NUM_2
-#define GPIO_RED_LED GPIO_NUM_14
-#define GPIO_BLUE_LED GPIO_NUM_15
-#define GPIO_GREEN_LED GPIO_NUM_13
+#define GPIO_SENSOR_PIR GPIO_NUM_9
+#define GPIO_BUZZER  GPIO_NUM_6
+#define GPIO_RED_LED GPIO_NUM_5
+#define GPIO_BLUE_LED GPIO_NUM_4
+#define GPIO_GREEN_LED GPIO_NUM_3
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include "face_ai.h"
 
 /**
  *@brief ce jetons sert d'authorisation pour que le micro controlleur
@@ -36,6 +37,7 @@ extern SemaphoreHandle_t binaryTaskPicture;
  * @brief fonction d'initialisation des broches des differents composants
  * @details les composants initialisés sont :
  * 
+ * 
  *   Les capteurs:
  * 
  *      capteurs infrarouges PIR pour detection de mouvement
@@ -47,7 +49,7 @@ extern SemaphoreHandle_t binaryTaskPicture;
  *     -leds
  * 
  *   contient la configuration des broches qui gere ces composants ainsi que
- * les etats au demarrage
+ * les etats au dema+rrage
  * @warning Ne retourne aucune valeur, ne l'appelez pas pour une variable
  */
 extern void InitComponents();
@@ -87,8 +89,21 @@ extern void InterrupSensorPIR(void* arg);
  */
 extern void taskSensorPIR(void* arg);
 
+/**
+ * @brief tache de capture photos et traitement de l'image
+ * @details Contient la logique métier de capture d'image, de traitement
+ * de l'image par le modele de detection d'image , le systeme reagit via ses
+ * différents actionneurs , en fonction du taux de similutude
+ * @param arg pointeur vers l'id de la tache
+ */
 void taskPicture(void* arg);
 
+/**
+ * @brief tache d'envoie de l'image capturé a un serveur
+ * @warning cette fonctionnalité n'est pas encore complete est
+ * instable et pas encore sécurisé
+ * @param arg pointeur vers l'id de la tache
+ * @version 0.0.1 */
 void sendImageHttp(void* arg);
 
 #endif
