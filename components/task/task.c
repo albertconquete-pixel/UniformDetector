@@ -10,6 +10,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_camera.h"
+#include "face_ai.h"
 
 
 SemaphoreHandle_t binaryTaskSensor= NULL;
@@ -77,7 +78,7 @@ void taskInitAndStartWifi(){
 }
 
 void IRAM_ATTR InterrupSensorPIR(void* arg){
-    iaWork=true;
+
     BaseType_t priorityTask = pdFALSE;
     xSemaphoreGiveFromISR(binaryTaskSensor,&priorityTask);
     portYIELD_FROM_ISR(priorityTask);
@@ -89,9 +90,11 @@ void taskSensorPIR(void* arg){
     while (1)
     {
         if (xSemaphoreTake(binaryTaskSensor,portMAX_DELAY)==pdTRUE){
-            /*clignotement de la led*/
+
             printf("ok \n");
             xSemaphoreGive(binaryTaskPicture);
+            iaWork=true;
+            /* clignotement de la led bleue */
             while (iaWork)
             {
                 gpio_set_level(GPIO_BLUE_LED,0);
@@ -107,27 +110,56 @@ void taskPicture(void* arg){
     while (1)
     {
         if(xSemaphoreTake(binaryTaskPicture,portMAX_DELAY)){
-            printf("processus de prise de photos");
+
+            printf("processus de prise de photos\n");
             camera_fb_t* img= NULL;
             img= takePicture();
-            if (!img)
+           
+            if (img)
             {
+                bool result= verifieImage(img->buf,img->len);
+                if (result)
+                {
+                    ESP_LOGI("result","cette personne est celle qu'on cherche");
+                    gpio_set_level(GPIO_BUZZER,1);
+                    gpio_set_level(GPIO_GREEN_LED,1);
+                    vTaskDelay(pdMS_TO_TICKS(500));
+                    gpio_set_level(GPIO_BUZZER,0);
+                    gpio_set_level(GPIO_GREEN_LED,0);
+                }
+                else
+                {
+                    ESP_LOGI("result","cette personne n'est pas celle qu'on cherche");
+                    gpio_set_level(GPIO_BUZZER,1);
+                    gpio_set_level(GPIO_RED_LED,1);
+                    vTaskDelay(pdMS_TO_TICKS(700));
+                    gpio_set_level(GPIO_BUZZER,0);
+                    gpio_set_level(GPIO_RED_LED,0);
+                    vTaskDelay(pdMS_TO_TICKS(100));
+                    gpio_set_level(GPIO_BUZZER,1);
+                    gpio_set_level(GPIO_RED_LED,1);
+                    vTaskDelay(pdMS_TO_TICKS(700));
+                    gpio_set_level(GPIO_BUZZER,0);
+                    gpio_set_level(GPIO_RED_LED,0);
+
+                }
+            
+            }
+            else 
+            {
+                ESP_LOGE("camera", "capture invalide");
                 gpio_set_level(GPIO_BUZZER,1);
                 gpio_set_level(GPIO_RED_LED,1);
                 vTaskDelay(pdMS_TO_TICKS(1000));
                 gpio_set_level(GPIO_BUZZER,0);
                 gpio_set_level(GPIO_RED_LED,0);
-            }
-            else
-            {
-                gpio_set_level(GPIO_BUZZER,1);
-                gpio_set_level(GPIO_GREEN_LED,1);
-                vTaskDelay(pdMS_TO_TICKS(1000));
-                gpio_set_level(GPIO_BUZZER,0);
-                gpio_set_level(GPIO_GREEN_LED,0);
+                
             } 
+           
+            
             iaWork= false;
-
+           
+            xQueueSend(queueImageBuffer,&img,portMAX_DELAY) ;
         }
 
     }
@@ -138,13 +170,14 @@ void sendImageHttp(void* arg){
     camera_fb_t* imageBuffer = NULL;
     while (1)
     {
+        printf("preuve\n");
         if(xQueueReceive(queueImageBuffer,&imageBuffer,portMAX_DELAY)){
             if (imageBuffer)
             {
-                httpsTransfer(imageBuffer->buf,imageBuffer->len);
-                freeBuffer(imageBuffer); 
+                freeBuffer(imageBuffer);
+                printf("buffer libéré %d\n",imageBuffer->len); 
             }
-            vTaskDelay(pdMS_TO_TICKS(500));
+            vTaskDelay(pdMS_TO_TICKS(50));
         }
         
     }
