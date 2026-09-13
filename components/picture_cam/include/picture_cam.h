@@ -19,23 +19,23 @@
 #define PICTURE_CAM_
 
 
-#define CAM_PIN_PWDN 32 /** Active/desactive l'alimentation de la camera */
+#define CAM_PIN_PWDN -1 /** Active/desactive l'alimentation de la camera */
 #define CAM_PIN_RESET -1  /** broche de reintiation materielle, aucune broche n'est dédié */
-#define CAM_PIN_SIOD 26  /** ligne de données*/
-#define CAM_PIN_SIOC 27 /** ligne d'horloge */
-#define CAM_PIN_XCLK    0
+#define CAM_PIN_SIOD 40  /** ligne de données*/
+#define CAM_PIN_SIOC 39 /** ligne d'horloge */
+#define CAM_PIN_XCLK  10
 
-#define CAM_PIN_D7      35 /** bus de données de l'image (le plus fort)*/
-#define CAM_PIN_D6      34
-#define CAM_PIN_D5      39
-#define CAM_PIN_D4      36
-#define CAM_PIN_D3      21
-#define CAM_PIN_D2      19
-#define CAM_PIN_D1      18
-#define CAM_PIN_D0       5 /** bus de données de l'image (le plus faible)*/
-#define CAM_PIN_VSYNC   25
-#define CAM_PIN_HREF    23
-#define CAM_PIN_PCLK    22
+#define CAM_PIN_D7      48 /** bus de données de l'image (le plus fort)*/
+#define CAM_PIN_D6      11
+#define CAM_PIN_D5      12
+#define CAM_PIN_D4      14
+#define CAM_PIN_D3      16
+#define CAM_PIN_D2      18
+#define CAM_PIN_D1      17
+#define CAM_PIN_D0      15 /** bus de données de l'image (le plus faible)*/
+#define CAM_PIN_VSYNC   38
+#define CAM_PIN_HREF    47
+#define CAM_PIN_PCLK    13
 
 #define CONFIG_XCLK_FREQ 10000000 
 #define CONFIG_OV2640_SUPPORT 1
@@ -63,6 +63,7 @@ extern esp_err_t initCamera();
  * @return retourne un buffer d'image: un tableau d'entier 8bits
  */
 extern camera_fb_t* takePicture();
+
 /**
  * fonction permettant de liberer la framme d'image de la camera
  */
